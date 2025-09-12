@@ -4,6 +4,8 @@ import uuid
 def unique_email(prefix="login"):
     return f"{prefix}_{uuid.uuid4().hex[:8]}@example.com"
 
+# --- Helpers HTTP ------------------------------------------------------------
+
 def register_user(http, urls, email: str, password: str):
     resp = http.post(
         urls["register"],
@@ -42,6 +44,8 @@ def create_business(http, urls, token: str, name: str):
         timeout=5,
     )
 
+# --- Tests -------------------------------------------------------------------
+
 def test_login_success_returns_token(http, urls):
     email = unique_email("ok")
     password = "Secret123!"
@@ -64,8 +68,18 @@ def test_login_wrong_password(http, urls):
     assert resp.headers.get("content-type", "").lower().startswith("application/json")
     assert resp.json().get("error") == "invalid_credentials"
 
-def test_login_returns_business_name_when_exists(http, urls):
-    email = unique_email("withbiz")
+def test_login_business_list_empty_when_none(http, urls):
+    email = unique_email("nobiz")
+    password = "Secret123!"
+    register_user(http, urls, email, password)
+
+    resp_login = http.post(urls["login"], json={"email": email, "password": password}, timeout=5)
+    assert resp_login.status_code == 200
+    body = resp_login.json()
+    assert body.get("business_list") == []
+
+def test_login_returns_business_list_when_one(http, urls):
+    email = unique_email("onebiz")
     password = "Secret123!"
     register_user(http, urls, email, password)
     token = login_get_token(http, urls, email, password)
@@ -77,14 +91,29 @@ def test_login_returns_business_name_when_exists(http, urls):
     resp_login = http.post(urls["login"], json={"email": email, "password": password}, timeout=5)
     assert resp_login.status_code == 200
     body = resp_login.json()
-    assert body.get("business_name") == biz_name
+    assert "business_list" in body and isinstance(body["business_list"], list)
+    assert len(body["business_list"]) == 1
+    assert body["business_list"][0]["business_name"] == biz_name
+    assert isinstance(body["business_list"][0]["business_id"], int)
 
-def test_login_business_name_false_when_none(http, urls):
-    email = unique_email("nobiz")
+def test_login_returns_business_list_with_two_businesses(http, urls):
+    email = unique_email("twobiz")
     password = "Secret123!"
     register_user(http, urls, email, password)
+    token = login_get_token(http, urls, email, password)
+
+    resp_create_1 = create_business(http, urls, token, "BizOne")
+    assert resp_create_1.status_code == 201, resp_create_1.text
+    resp_create_2 = create_business(http, urls, token, "BizTwo")
+    assert resp_create_2.status_code == 201, resp_create_2.text
 
     resp_login = http.post(urls["login"], json={"email": email, "password": password}, timeout=5)
     assert resp_login.status_code == 200
     body = resp_login.json()
-    assert body.get("business_name") is False
+
+    assert "business_list" in body and isinstance(body["business_list"], list)
+    assert len(body["business_list"]) == 2
+    names = sorted([b["business_name"] for b in body["business_list"]])
+    assert names == ["BizOne", "BizTwo"]
+    for b in body["business_list"]:
+        assert isinstance(b["business_id"], int)

@@ -55,24 +55,36 @@ def test_business_create_happy_path(http, urls):
     assert isinstance(data.get("id"), int)
     assert data.get("message") == f"business {name} successfully created"
 
-def test_business_already_registered(http, urls):
-    email = unique_email("dup")
+def test_business_create_multiple_for_same_client(http, urls):
+    email = unique_email("multi")
     password = "Secret123!"
     register_user(http, urls, email, password)
     token = login_get_token(http, urls, email, password)
 
-    # Primer alta
-    first_name = "Primary Biz"
-    resp1 = create_business(http, urls, token, first_name)
-    assert resp1.status_code == 201
-    first_id = resp1.json()["id"]
+    # Primer negocio
+    resp1 = create_business(http, urls, token, "Primary Biz")
+    assert resp1.status_code == 201, resp1.text
+    id1 = resp1.json().get("id")
+    assert isinstance(id1, int)
 
-    # Segundo intento: debe fallar con 409 y devolver el mismo business_id
+    # Segundo negocio (ahora permitido)
     resp2 = create_business(http, urls, token, "Another Name")
-    assert resp2.status_code == 409
-    body = resp2.json()
-    assert body.get("error") == "client_already_have_business"
-    assert body.get("business_id") == first_id
+    assert resp2.status_code == 201, resp2.text
+    id2 = resp2.json().get("id")
+    assert isinstance(id2, int)
+    assert id2 != id1
+
+    # Verificar via login que figuran ambos en business_list
+    resp_login = http.post(
+        urls["login"], json={"email": email, "password": password}, timeout=5
+    )
+    assert resp_login.status_code == 200
+    body = resp_login.json()
+    assert "business_list" in body and isinstance(body["business_list"], list)
+    names = sorted([b["business_name"] for b in body["business_list"]])
+    assert names == ["Another Name", "Primary Biz"]
+    for b in body["business_list"]:
+        assert isinstance(b["business_id"], int)
 
 def test_business_name_too_long(http, urls):
     email = unique_email("toolong")
