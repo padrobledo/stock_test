@@ -7,6 +7,7 @@ import pytest
 BASE_URL = os.getenv("API_URL", "http://127.0.0.1:5000").rstrip("/")
 REGISTER_URL = f"{BASE_URL}/auth/register_credentials/"
 LOGIN_URL = f"{BASE_URL}/auth/validate_credentials/"
+BUSINESS_CREATE_URL = f"{BASE_URL}/business/create_new"
 
 @pytest.fixture(scope="session")
 def http():
@@ -16,46 +17,94 @@ def unique_email(prefix="login"):
     return f"{prefix}_{uuid.uuid4().hex[:8]}@example.com"
 
 def register_user(http, email: str, password: str):
-    payload = {
-        "email": email,
-        "repeat_email": email,
-        "password": password,
-        "repeat_password": password,
-    }
-    resp = http.post(REGISTER_URL, json=payload, timeout=5)
+    resp = http.post(
+        REGISTER_URL,
+        json={
+            "email": email,
+            "repeat_email": email,
+            "password": password,
+            "repeat_password": password,
+        },
+        timeout=5,
+    )
     assert resp.status_code == 201, f"register failed: {resp.status_code} {resp.text}"
     return resp.json()
 
-def test_login_success_returns_token(http):
-    email = unique_email("ok")
-    password = "Secret123!"
-    # crear usuario
-    register_user(http, email, password)
-
-    # login
+def login_get_token(http, email: str, password: str) -> str:
     resp = http.post(
         LOGIN_URL,
         json={"email": email, "password": password},
         timeout=5,
     )
+    assert resp.status_code == 200, f"login failed: {resp.status_code} {resp.text}"
+    body = resp.json()
+    token = body.get("access_token")
+    assert token and isinstance(token, str)
+    assert body.get("token_type") == "Bearer"
+    return token
+
+def auth_headers(token: str):
+    return {"Authorization": f"Bearer {token}"}
+
+def create_business(http, token: str, name: str):
+    return http.post(
+        BUSINESS_CREATE_URL,
+        headers=auth_headers(token),
+        json={"business_name": name},
+        timeout=5,
+    )
+
+def test_login_success_returns_token(http):
+    email = unique_email("ok")
+    password = "Secret123!"
+    register_user(http, email, password)
+
+    resp = http.post(
+        LOGIN_URL, json={"email": email, "password": password}, timeout=5
+    )
     assert resp.status_code == 200
     assert resp.headers.get("content-type", "").lower().startswith("application/json")
     body = resp.json()
-    assert isinstance(body.get("access_token"), str) and len(body["access_token"]) > 0
+    assert isinstance(body.get("access_token"), str) and body["access_token"]
     assert body.get("token_type") == "Bearer"
 
 def test_login_wrong_password(http):
     email = unique_email("wrongpw")
     password = "Secret123!"
-    # crear usuario
     register_user(http, email, password)
 
-    # login con password incorrecto
     resp = http.post(
-        LOGIN_URL,
-        json={"email": email, "password": "NotTheSame123!"},
-        timeout=5,
+        LOGIN_URL, json={"email": email, "password": "NotTheSame123!"}, timeout=5
     )
     assert resp.status_code == 401
     assert resp.headers.get("content-type", "").lower().startswith("application/json")
     assert resp.json().get("error") == "invalid_credentials"
+
+def test_login_returns_business_name_when_exists(http):
+    email = unique_email("withbiz")
+    password = "Secret123!"
+    register_user(http, email, password)
+    token = login_get_token(http, email, password)
+
+    biz_name = "MyStore"
+    resp_create = create_business(http, token, biz_name)
+    assert resp_create.status_code == 201, resp_create.text
+
+    resp_login = http.post(
+        LOGIN_URL, json={"email": email, "password": password}, timeout=5
+    )
+    assert resp_login.status_code == 200
+    body = resp_login.json()
+    assert body.get("business_name") == biz_name
+
+def test_login_business_name_false_when_none(http):
+    email = unique_email("nobiz")
+    password = "Secret123!"
+    register_user(http, email, password)
+
+    resp_login = http.post(
+        LOGIN_URL, json={"email": email, "password": password}, timeout=5
+    )
+    assert resp_login.status_code == 200
+    body = resp_login.json()
+    assert body.get("business_name") is False
