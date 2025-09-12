@@ -4,7 +4,8 @@ import uuid
 import requests
 import pytest
 
-BASE_URL = os.getenv("API_URL", "http://127.0.0.1:5000").rstrip("/")
+#BASE_URL = os.getenv("API_URL", "http://127.0.0.1:5000").rstrip("/")
+BASE_URL = os.getenv("API_URL", "https://pocholo.pythonanywhere.com").rstrip("/")
 REGISTER_URL = f"{BASE_URL}/auth/register_credentials/"
 LOGIN_URL = f"{BASE_URL}/auth/validate_credentials/"
 BUSINESS_CREATE_URL = f"{BASE_URL}/business/create_new"
