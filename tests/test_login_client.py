@@ -77,14 +77,14 @@ def test_login_wrong_password(http, urls):
     assert resp.headers.get("content-type", "").lower().startswith("application/json")
     assert resp.json().get("error") == "invalid_credentials"
 
-def test_login_business_list_has_default_my_business_and_branch(http, urls):
+def test_login_default_business_has_default_branch_and_section(http, urls):
     email = unique_email("defaultbiz")
     password = "Secret123!"
     register_user(http, urls, email, password)
 
     body = _login_body(http, urls, email, password)
 
-    # Debe venir 1 negocio por defecto con su branch por defecto
+    # Debe venir 1 negocio por defecto con su branch y section por defecto
     assert "business_list" in body and isinstance(body["business_list"], list)
     assert len(body["business_list"]) == 1
 
@@ -92,51 +92,64 @@ def test_login_business_list_has_default_my_business_and_branch(http, urls):
     assert biz["business_name"] == "My Business"
     assert isinstance(biz["business_id"], int)
 
-    # Branches del negocio por defecto
     assert "branches" in biz and isinstance(biz["branches"], list)
     assert len(biz["branches"]) == 1
+
     default_branch = biz["branches"][0]
     assert default_branch["branch_name"] == "My Branch"
     assert isinstance(default_branch["branch_id"], int)
 
-def test_login_returns_business_list_with_two_after_creating_one_and_branches(http, urls):
+    # Sections dentro del branch
+    assert "sections" in default_branch and isinstance(default_branch["sections"], list)
+    assert len(default_branch["sections"]) == 1
+    sec = default_branch["sections"][0]
+    assert sec["section_name"] == "My Section"
+    assert isinstance(sec["section_id"], int)
+
+def test_login_two_businesses_after_creating_one_and_sections(http, urls):
+    """
+    Al crear 1 negocio adicional vía endpoint:
+    - My Business mantiene su My Branch + My Section.
+    - El nuevo negocio NO trae branches ni sections por defecto.
+    """
     email = unique_email("one_extra")
     password = "Secret123!"
     register_user(http, urls, email, password)
     token = login_get_token(http, urls, email, password)
 
-    # Crear 1 negocio adicional (sin branch por defecto)
+    # Crear 1 negocio adicional (no debe crear branches/sections)
     biz_name = "MyStore"
     resp_create = create_business(http, urls, token, biz_name)
     assert resp_create.status_code == 201, resp_create.text
 
     body = _login_body(http, urls, email, password)
-
     assert "business_list" in body and isinstance(body["business_list"], list)
     assert len(body["business_list"]) == 2
 
-    # Mapeamos por nombre para revisar ramas esperadas
     by_name = _by_name(body["business_list"])
 
-    # My Business → debe tener 1 branch por defecto
+    # My Business → 1 branch con 1 section
     assert "My Business" in by_name
     mb = by_name["My Business"]
     assert isinstance(mb["business_id"], int)
     assert "branches" in mb and isinstance(mb["branches"], list)
     assert len(mb["branches"]) == 1
-    assert mb["branches"][0]["branch_name"] == "My Branch"
-    assert isinstance(mb["branches"][0]["branch_id"], int)
+    br_mb = mb["branches"][0]
+    assert br_mb["branch_name"] == "My Branch"
+    assert isinstance(br_mb["branch_id"], int)
+    assert "sections" in br_mb and isinstance(br_mb["sections"], list)
+    assert len(br_mb["sections"]) == 1
+    assert br_mb["sections"][0]["section_name"] == "My Section"
+    assert isinstance(br_mb["sections"][0]["section_id"], int)
 
-    # MyStore → aún sin branches
+    # MyStore → sin branches
     assert "MyStore" in by_name
     ms = by_name["MyStore"]
     assert isinstance(ms["business_id"], int)
     assert "branches" in ms and isinstance(ms["branches"], list)
     assert ms["branches"] == []
 
-# ---- Refactor del test largo en 3 pruebas pequeñas ----
-
-def test_login_three_businesses_after_creating_two(http, urls):
+def test_login_three_businesses_after_creating_two_count(http, urls):
     email = unique_email("two_extra_count")
     password = "Secret123!"
     register_user(http, urls, email, password)
@@ -153,29 +166,13 @@ def test_login_three_businesses_after_creating_two(http, urls):
     names = sorted([b["business_name"] for b in body["business_list"]])
     assert names == ["BizOne", "BizTwo", "My Business"]
 
-def test_login_default_business_has_one_default_branch_after_creating_two(http, urls):
-    email = unique_email("two_extra_def_branch")
-    password = "Secret123!"
-    register_user(http, urls, email, password)
-    token = login_get_token(http, urls, email, password)
-
-    # Crear 2 negocios adicionales
-    assert create_business(http, urls, token, "BizOne").status_code == 201
-    assert create_business(http, urls, token, "BizTwo").status_code == 201
-
-    body = _login_body(http, urls, email, password)
-    by_name = _by_name(body["business_list"])
-
-    assert "My Business" in by_name
-    mybiz = by_name["My Business"]
-    assert isinstance(mybiz["business_id"], int)
-    assert "branches" in mybiz and isinstance(mybiz["branches"], list)
-    assert len(mybiz["branches"]) == 1
-    assert mybiz["branches"][0]["branch_name"] == "My Branch"
-    assert isinstance(mybiz["branches"][0]["branch_id"], int)
-
-def test_login_new_businesses_start_with_no_branches_after_creating_two(http, urls):
-    email = unique_email("two_extra_empty_branches")
+def test_login_new_businesses_start_with_no_branches_and_sections(http, urls):
+    """
+    Al crear 2 negocios nuevos vía endpoint:
+    - Ambos deben arrancar sin branches (y por ende sin sections).
+    - El negocio por defecto ya fue comprobado en otro test.
+    """
+    email = unique_email("two_extra_empty")
     password = "Secret123!"
     register_user(http, urls, email, password)
     token = login_get_token(http, urls, email, password)
@@ -188,11 +185,13 @@ def test_login_new_businesses_start_with_no_branches_after_creating_two(http, ur
     by_name = _by_name(body["business_list"])
 
     assert "BizOne" in by_name and "BizTwo" in by_name
-    assert isinstance(by_name["BizOne"]["business_id"], int)
-    assert isinstance(by_name["BizTwo"]["business_id"], int)
+    b1 = by_name["BizOne"]
+    b2 = by_name["BizTwo"]
 
-    assert "branches" in by_name["BizOne"] and isinstance(by_name["BizOne"]["branches"], list)
-    assert "branches" in by_name["BizTwo"] and isinstance(by_name["BizTwo"]["branches"], list)
+    assert isinstance(b1["business_id"], int)
+    assert isinstance(b2["business_id"], int)
 
-    assert by_name["BizOne"]["branches"] == []
-    assert by_name["BizTwo"]["branches"] == []
+    assert "branches" in b1 and isinstance(b1["branches"], list)
+    assert "branches" in b2 and isinstance(b2["branches"], list)
+    assert b1["branches"] == []
+    assert b2["branches"] == []
