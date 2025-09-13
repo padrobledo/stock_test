@@ -4,7 +4,7 @@ const { test } = require('../../../../fixtures/common.fixture');
 
 test.describe('Register New Client', () => {
 
-    test('@smoke Registration endpoint works properly', async ({ request, endpoints, randomString, assertions }) => {
+    test('Registration endpoint works properly [@smoke]', async ({ request, endpoints, randomString, assertions }) => {
 
         const newClientData = {};
 
@@ -24,7 +24,7 @@ test.describe('Register New Client', () => {
 
         });
 
-        await test.step(`POST '${endpoints.auth.register_new_client}' with valid data`, async () => {
+        await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
 
             const response = await request.post(endpoints.auth.register_new_client, { data: newClientData });
 
