@@ -10,11 +10,12 @@ test.describe('Validate User Credentials', () => {
 
         await test.step('Creates a new user', async () => {
 
-            const email = `user_${randomString(6)}@example.com`;
+            const email = `user_${randomString(6)}@email.com`;
 
             const password = randomString(10);
 
-            const response = await request.post(endpoints.auth.register_new_client, { data: {
+            const response = await request.post(endpoints.auth.register_new_client, {
+                data: {
 
                     "email": email,
                     "repeat_email": email,
@@ -49,23 +50,23 @@ test.describe('Validate User Credentials', () => {
 
             // Business assertions
             assertions.expectHasProperty(responseBody, 'business_list');
-            const firstBusiness = responseBody.business_list[0];
-            assertions.expectHasProperty(firstBusiness, 'branches');
+            const defaultBusiness = responseBody.business_list[0];
+            assertions.expectHasProperty(defaultBusiness, 'branches');
 
             // Branch assertions
-            const firstBranch = firstBusiness.branches[0];
-            assertions.expectHasProperty(firstBranch, 'branch_id');
-            assertions.expectPropertyTruthy(firstBranch.branch_id);
-            assertions.expectHasProperty(firstBranch, 'branch_name');
-            assertions.expectPropertyTruthy(firstBranch.branch_name);
-            assertions.expectHasProperty(firstBranch, 'sections');
+            const defaultBranch = defaultBusiness.branches[0];
+            assertions.expectHasProperty(defaultBranch, 'branch_id');
+            assertions.expectPropertyTruthy(defaultBranch.branch_id);
+            assertions.expectHasProperty(defaultBranch, 'branch_name');
+            assertions.expectPropertyTruthy(defaultBranch.branch_name);
+            assertions.expectHasProperty(defaultBranch, 'sections');
 
             // Section assertions
-            const firstSection = firstBranch.sections[0];
-            assertions.expectHasProperty(firstSection, 'section_id');
-            assertions.expectPropertyTruthy(firstSection.section_id);
-            assertions.expectHasProperty(firstSection, 'section_name');
-            assertions.expectPropertyTruthy(firstSection.section_name);
+            const defaultSection = defaultBranch.sections[0];
+            assertions.expectHasProperty(defaultSection, 'section_id');
+            assertions.expectPropertyTruthy(defaultSection.section_id);
+            assertions.expectHasProperty(defaultSection, 'section_name');
+            assertions.expectPropertyTruthy(defaultSection.section_name);
 
         });
 
