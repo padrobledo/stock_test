@@ -10,7 +10,7 @@ test.describe('Register New Client - Negative Cases', () => {
 
         await test.step('Register a new email', async () => {
 
-            const email = `user_${randomString(6)}@example.com`;
+            const email = `user_${randomString(6)}@email.com`;
 
             const password = randomString(10);
 
@@ -49,7 +49,7 @@ test.describe('Register New Client - Negative Cases', () => {
         const wrongClientData = {
             "email": "pw-do-not-match@email.com",
             "repeat_email": "pw-do-not-match@email.com",
-            "password": "TestPassword1234",
+            "password": randomString(10),
             "repeat_password": randomString(10),
         };
 
@@ -72,8 +72,8 @@ test.describe('Register New Client - Negative Cases', () => {
     test('Registration endpoint rejects when emails do not match', async ({ request, endpoints, randomString, assertions }) => {
 
         const wrongClientData = {
-            "email": "email-do-not-match@email.com",
-            "repeat_email": `different-email-${randomString(5)}@email.com`,
+            "email": `do-not-match-${randomString(6)}@email.com`,
+            "repeat_email": `do-not-match-${randomString(6)}@email.com`,
             "password": "TestPassword1234",
             "repeat_password": "TestPassword1234",
         };
