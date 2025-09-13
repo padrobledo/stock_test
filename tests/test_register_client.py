@@ -16,9 +16,8 @@ def test_register_happy_path(http, urls):
     assert resp.status_code == 201
     assert resp.headers.get("content-type", "").lower().startswith("application/json")
     data = resp.json()
-    assert data["email"] == email
-    assert isinstance(data["id"], int)
-    assert isinstance(data["created_at"], int)
+    # la respuesta ahora es sólo un mensaje de éxito
+    assert data.get("message") == "Account successfully created"
 
 def test_register_emails_do_not_match(http, urls):
     payload = {
