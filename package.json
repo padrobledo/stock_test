@@ -1,0 +1,22 @@
+{
+  "name": "stock-api-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Suite de pruebas API con Playwright",
+  "scripts": {
+    "prepare": "npx playwright install chromium",
+    "api:local": "dotenv -e .env.local -- npx playwright test tests/api",
+    "api:prod": "dotenv -e .env.prod -- npx playwright test tests/api",
+    "ui:local": "dotenv -e .env.local -- npx playwright test tests/ui",
+    "ui:prod": "dotenv -e .env.prod -- npx playwright test tests/ui",
+    "smoke:local": "dotenv -e .env.local -- npx playwright test --grep @smoke",
+    "smoke:prod": "dotenv -e .env.prod -- npx playwright test --grep @smoke",
+    "regression:local": "dotenv -e .env.local -- npx playwright test",
+    "regression:prod": "dotenv -e .env.prod -- npx playwright test",
+    "show-report": "npx playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0",
+    "dotenv-cli": "^7.4.1"
+  }
+}
