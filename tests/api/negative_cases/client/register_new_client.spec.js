@@ -50,7 +50,7 @@ test.describe('Register New Client - Negative Cases', () => {
             "email": "pw-do-not-match@email.com",
             "repeat_email": "pw-do-not-match@email.com",
             "password": "TestPassword1234",
-            "repeat_password": "do-not-match",
+            "repeat_password": randomString(10),
         };
 
         await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
@@ -73,7 +73,7 @@ test.describe('Register New Client - Negative Cases', () => {
 
         const wrongClientData = {
             "email": "email-do-not-match@email.com",
-            "repeat_email": "different-email@email.com",
+            "repeat_email": `different-email-${randomString(5)}@email.com`,
             "password": "TestPassword1234",
             "repeat_password": "TestPassword1234",
         };
