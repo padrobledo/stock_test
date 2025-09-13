@@ -1,7 +1,7 @@
 // playwright.config.js
 const { defineConfig, devices } = require('@playwright/test');
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
+const BASE_URL = process.env.BASE_URL;
 
 module.exports = defineConfig({
   testDir: 'tests',
@@ -13,7 +13,7 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }, // sólo Chrome
+      use: { ...devices['Desktop Chrome'] },
     }
   ],
   reporter: [['html', { open: 'never' }], ['list']]

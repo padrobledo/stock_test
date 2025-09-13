@@ -41,9 +41,31 @@ test.describe('Validate User Credentials', () => {
 
             assertions.expectStatus(response, 201);
 
+            // Token assertions
             assertions.expectHasProperty(responseBody, 'access_token');
-
             assertions.expectPropertyTruthy(responseBody, 'access_token');
+            assertions.expectHasProperty(responseBody, 'token_type');
+            assertions.expectPropertyValue(responseBody, 'token_type', 'Bearer');
+
+            // Business assertions
+            assertions.expectHasProperty(responseBody, 'business_list');
+            const firstBusiness = responseBody.business_list[0];
+            assertions.expectHasProperty(firstBusiness, 'branches');
+
+            // Branch assertions
+            const firstBranch = firstBusiness.branches[0];
+            assertions.expectHasProperty(firstBranch, 'branch_id');
+            assertions.expectPropertyTruthy(firstBranch.branch_id);
+            assertions.expectHasProperty(firstBranch, 'branch_name');
+            assertions.expectPropertyTruthy(firstBranch.branch_name);
+            assertions.expectHasProperty(firstBranch, 'sections');
+
+            // Section assertions
+            const firstSection = firstBranch.sections[0];
+            assertions.expectHasProperty(firstSection, 'section_id');
+            assertions.expectPropertyTruthy(firstSection.section_id);
+            assertions.expectHasProperty(firstSection, 'section_name');
+            assertions.expectPropertyTruthy(firstSection.section_name);
 
         });
 

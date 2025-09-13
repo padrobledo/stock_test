@@ -41,11 +41,11 @@ function expectPropertyValue(body, propName, expectedValue) {
 
 // Validates that a property value is not null, undefined, 0, "" or false
 
-function expectPropertyTruthy(body, propName) {
+function expectPropertyTruthy(body) {
 
     expect(
-    body[propName],
-    `Expected '${propName}' to be truthy, but got "${body[propName]}"`
+    body,
+    `Expected '${body}' to be truthy, but got "${body}"`
   ).toBeTruthy();
 
 }

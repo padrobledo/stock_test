@@ -4,9 +4,9 @@ const { test } = require('../../../../fixtures/common.fixture');
 
 test.describe('Register New Client - Negative Cases', () => {
 
-    const newClientData = {};
-
     test('Registration endpoint rejects duplicated email', async ({ request, endpoints, randomString, assertions }) => {
+
+        const newClientData = {};
 
         await test.step('Register a new email', async () => {
 
@@ -46,13 +46,12 @@ test.describe('Register New Client - Negative Cases', () => {
 
     test('Registration endpoint rejects when passwords do not match', async ({ request, endpoints, randomString, assertions }) => {
 
-        const wrongClientData = newClientData;
-
-        await test.step('Prepare credentials', async () => {
-
-            wrongClientData.repeat_password = "do-not-match";
-
-        });
+        const wrongClientData = {
+            "email": "pw-do-not-match@email.com",
+            "repeat_email": "pw-do-not-match@email.com",
+            "password": "TestPassword1234",
+            "repeat_password": "do-not-match",
+        };
 
         await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
 
@@ -72,13 +71,12 @@ test.describe('Register New Client - Negative Cases', () => {
 
     test('Registration endpoint rejects when emails do not match', async ({ request, endpoints, randomString, assertions }) => {
 
-        const wrongClientData = newClientData;
-
-        await test.step('Prepare credentials', async () => {
-
-            wrongClientData.repeat_email = "do-not-match@email.com";
-
-        });
+        const wrongClientData = {
+            "email": "email-do-not-match@email.com",
+            "repeat_email": "different-email@email.com",
+            "password": "TestPassword1234",
+            "repeat_password": "TestPassword1234",
+        };
 
         await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
 
