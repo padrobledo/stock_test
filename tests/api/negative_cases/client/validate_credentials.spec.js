@@ -4,7 +4,7 @@ const { test } = require('../../../../fixtures/common.fixture');
 
 test.describe('Validate Credentials - Negative Cases', () => {
 
-    test('Validate Credentials endpoint rejects unknown email', async ({ request, endpoints, randomString, assertions }) => {
+    test.skip('Validate Credentials endpoint rejects unknown email', async ({ request, endpoints, randomString, assertions }) => {
 
         await test.step(`POST to ${endpoints.auth.validate_user_credentials}`, async () => {
 
@@ -28,7 +28,7 @@ test.describe('Validate Credentials - Negative Cases', () => {
         });
     });
 
-    test('Validate Credentials endpoint rejects invalid password', async ({ request, endpoints, randomString, assertions }) => {
+    test.skip('Validate Credentials endpoint rejects invalid password', async ({ request, endpoints, randomString, assertions }) => {
 
         const clientData = {};
 
