@@ -10,6 +10,7 @@ const endpoints = {
   business: {
     create_new: '/business/create_new',
   },
+  health: '/health',
 };
 
 module.exports = endpoints;

@@ -1,14 +1,15 @@
 // tests/api/health.spec.js
 
-const { test, expect } = require('@playwright/test');
+const { test } = require('../../../../fixtures/common.fixture');
 
 test.describe('Health Check', () => {
 
-  test('Ensures API is up and running [@smoke]', async ({ request }) => {
+  // TODO: Update endpoint to hit /health from endpoints
+  test('Ensures API is up and running [@smoke]', async ({ request, endpoints, assertions }) => {
 
-    const res = await request.get('/');
+    const response = await request.get(endpoints.health);
 
-    expect(res.ok()).toBeTruthy();
+    assertions.expectStatus(response, 200);
 
   });
   
