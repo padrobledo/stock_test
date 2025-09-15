@@ -26,7 +26,7 @@ test.describe('Register New Client', () => {
 
         await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
 
-            const response = await request.post(endpoints.auth.register_new_client, { data: newClientData });
+            const response = await request.post(endpoints.auth.register_credentials, { data: newClientData });
 
             const responseBody = await response.json();
 

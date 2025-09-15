@@ -6,9 +6,9 @@ test.describe('Validate Credentials - Negative Cases', () => {
 
     test('Validate Credentials endpoint rejects unknown email', async ({ request, endpoints, randomString, assertions }) => {
 
-        await test.step(`POST to ${endpoints.auth.validate_user_credentials}`, async () => {
+        await test.step(`POST to ${endpoints.auth.validate_credentials}`, async () => {
 
-            const response = await request.post(endpoints.auth.validate_user_credentials, {
+            const response = await request.post(endpoints.auth.validate_credentials, {
                 data: {
 
                     "email": `unknown_email_${randomString(6)}@email.com`,
@@ -38,7 +38,7 @@ test.describe('Validate Credentials - Negative Cases', () => {
 
             const password = randomString(10);
 
-            const response = await request.post(endpoints.auth.register_new_client, {
+            const response = await request.post(endpoints.auth.register_credentials, {
                 data: {
 
                     "email": email,
@@ -56,9 +56,9 @@ test.describe('Validate Credentials - Negative Cases', () => {
 
         });
 
-        await test.step(`POST to ${endpoints.auth.validate_user_credentials}`, async () => {
+        await test.step(`POST to ${endpoints.auth.validate_credentials}`, async () => {
 
-            const response = await request.post(endpoints.auth.validate_user_credentials, {
+            const response = await request.post(endpoints.auth.validate_credentials, {
                 data: {
 
                     "email": clientData.email,

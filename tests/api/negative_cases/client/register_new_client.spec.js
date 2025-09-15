@@ -4,24 +4,21 @@ const { test } = require('../../../../fixtures/common.fixture');
 
 test.describe('Register New Client - Negative Cases', () => {
 
-    test('Registration endpoint rejects duplicated email', async ({ request, endpoints, randomString, assertions }) => {
+    test('Registration endpoint rejects duplicated email', async ({ request, endpoints, assertions, preconditions }) => {
         const newClientData = {};
 
-        await test.step('Register a new email', async () => {
-            const email = `user_${randomString(6)}@email.com`;
-            const password = randomString(10);
+        await test.step('Register a new client', async () => {
+            const { email, password } = await preconditions.new_client();
 
             newClientData.email = email;
             newClientData.repeat_email = email;
             newClientData.password = password;
             newClientData.repeat_password = password;
 
-            const response = await request.post(endpoints.auth.register_new_client, { data: newClientData });
-            assertions.expectStatus(response, 201);
         });
 
-        await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
-            const response = await request.post(endpoints.auth.register_new_client, { data: newClientData });
+        await test.step(`POST to '${endpoints.auth.register_credentials}'`, async () => {
+            const response = await request.post(endpoints.auth.register_credentials, { data: newClientData });
             const responseBody = await response.json();
 
             assertions.expectStatus(response, 409);
@@ -38,8 +35,8 @@ test.describe('Register New Client - Negative Cases', () => {
             repeat_password: randomString(10),
         };
 
-        await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
-            const response = await request.post(endpoints.auth.register_new_client, { data: wrongClientData });
+        await test.step(`POST to '${endpoints.auth.register_credentials}'`, async () => {
+            const response = await request.post(endpoints.auth.register_credentials, { data: wrongClientData });
             const responseBody = await response.json();
 
             assertions.expectStatus(response, 400);
@@ -56,8 +53,8 @@ test.describe('Register New Client - Negative Cases', () => {
             repeat_password: 'TestPassword1234',
         };
 
-        await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
-            const response = await request.post(endpoints.auth.register_new_client, { data: wrongClientData });
+        await test.step(`POST to '${endpoints.auth.register_credentials}'`, async () => {
+            const response = await request.post(endpoints.auth.register_credentials, { data: wrongClientData });
             const responseBody = await response.json();
 
             assertions.expectStatus(response, 400);
@@ -77,8 +74,8 @@ test.describe('Register New Client - Negative Cases', () => {
             repeat_password: '12345',
         };
 
-        await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
-            const response = await request.post(endpoints.auth.register_new_client, { data: wrongClientData });
+        await test.step(`POST to '${endpoints.auth.register_credentials}'`, async () => {
+            const response = await request.post(endpoints.auth.register_credentials, { data: wrongClientData });
             const responseBody = await response.json();
 
             assertions.expectStatus(response, 400);
@@ -95,8 +92,8 @@ test.describe('Register New Client - Negative Cases', () => {
             repeat_password: 'ValidPass123',
         };
 
-        await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
-            const response = await request.post(endpoints.auth.register_new_client, { data: wrongClientData });
+        await test.step(`POST to '${endpoints.auth.register_credentials}'`, async () => {
+            const response = await request.post(endpoints.auth.register_credentials, { data: wrongClientData });
             const responseBody = await response.json();
 
             assertions.expectStatus(response, 400);
@@ -116,8 +113,8 @@ test.describe('Register New Client - Negative Cases', () => {
             repeat_password: '',
         };
 
-        await test.step(`POST to '${endpoints.auth.register_new_client}'`, async () => {
-            const response = await request.post(endpoints.auth.register_new_client, { data: wrongClientData });
+        await test.step(`POST to '${endpoints.auth.register_credentials}'`, async () => {
+            const response = await request.post(endpoints.auth.register_credentials, { data: wrongClientData });
             const responseBody = await response.json();
 
             assertions.expectStatus(response, 400);
